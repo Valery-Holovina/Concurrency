@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 
 class DownloadImageLoader{
@@ -36,6 +37,13 @@ class DownloadImageLoader{
     }
     
     
+    // ------------ Download with Combine----------------
+    func downloadWithCombine() -> AnyPublisher<UIImage?, Error>{
+        URLSession.shared.dataTaskPublisher(for: url)
+            .map (handleRwsponse)
+            .mapError({$0})
+            .eraseToAnyPublisher()
+    }
     
     
     
@@ -52,17 +60,31 @@ class DownloadImageAsyncViewModel: ObservableObject{
     
     @Published var image: UIImage? = nil
     let loader = DownloadImageLoader()
+    var cancellables = Set<AnyCancellable>()
     
     func fetchImage(){
-        loader.downloadWithEscaping { [weak self] image, error in
-            DispatchQueue.main.async {
-                self?.image = image
+//        loader.downloadWithEscaping { [weak self] image, error in
+//            DispatchQueue.main.async {
+//                self?.image = image
+//            }
+        
+        
+        // 2----------
+        loader.downloadWithCombine()
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { _ in
+                
+            }, receiveValue: {  [weak self] image  in
+              
+                    self?.image = image
+            })
+            .store(in: &cancellables)
+           
             }
                
             
         }
-    }
-}
+
 
 struct DownloadImageAsync: View {
     
