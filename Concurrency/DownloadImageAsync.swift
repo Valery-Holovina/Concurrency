@@ -46,7 +46,19 @@ class DownloadImageLoader{
     }
     
     
+    //-------------- Download with Async ---------
     
+    func downloadWithAsync() async throws -> UIImage?{
+        do {
+            let (data,response) = try await URLSession.shared.data(from: url, delegate: nil)
+            return handleRwsponse(data: data, response: response)
+            
+        } catch  {
+            throw error
+        }
+        
+       
+    }
     
     
     
@@ -62,7 +74,8 @@ class DownloadImageAsyncViewModel: ObservableObject{
     let loader = DownloadImageLoader()
     var cancellables = Set<AnyCancellable>()
     
-    func fetchImage(){
+    func fetchImage() async{
+        /*
 //        loader.downloadWithEscaping { [weak self] image, error in
 //            DispatchQueue.main.async {
 //                self?.image = image
@@ -70,15 +83,24 @@ class DownloadImageAsyncViewModel: ObservableObject{
         
         
         // 2----------
-        loader.downloadWithCombine()
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { _ in
-                
-            }, receiveValue: {  [weak self] image  in
-              
-                    self?.image = image
-            })
-            .store(in: &cancellables)
+//        loader.downloadWithCombine()
+//            .receive(on: DispatchQueue.main)
+//            .sink(receiveCompletion: { _ in
+//                
+//            }, receiveValue: {  [weak self] image  in
+//              
+//                    self?.image = image
+//            })
+//            .store(in: &cancellables)
+        */
+        
+        // 3--------------------
+        let image = try? await loader.downloadWithAsync()
+        //main thread switch
+        await MainActor.run{
+            self.image = image
+        }
+       
            
             }
                
@@ -100,7 +122,9 @@ struct DownloadImageAsync: View {
             }
         }
         .onAppear{
-            vm.fetchImage()
+            Task{
+                await vm.fetchImage()
+            }
         }
     }
 }
