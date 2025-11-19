@@ -29,7 +29,33 @@ import SwiftUI
        
      
     }
+    
+    
+    
+    func addAuthor1() async{
+        //main thread
+        let author1 = "Author1: \(Thread.current)"
+        self.dataArray.append(author1)
+        
+        
+        try? await Task.sleep(nanoseconds: 2_000_000_000) // go on background thread
+        
+        let author2 =  "Author2: \(Thread.current)"
+        await MainActor.run { // go on main thread
+            self.dataArray.append(author2)
+        }
+        await addSomething()
+        
+        
+    }
 
+    func addSomething() async{
+        try? await Task.sleep(nanoseconds: 2000000000)
+        let sm =  "sm: \(Thread.current)"
+        await MainActor.run { // go on main thread
+            self.dataArray.append(sm)
+        }
+    }
     
     
 }
@@ -45,8 +71,15 @@ struct AsyncAwaitLearn: View {
             }
         }
         .onAppear{
-            vm.addTitle1()
-            vm.addTitle2()
+            Task{
+                await vm.addAuthor1()
+            
+                
+                let finalText = "Final \(Thread.current)"
+                vm.dataArray.append(finalText)
+            }
+//            vm.addTitle1()
+//            vm.addTitle2()
         }
     }
 }
