@@ -25,25 +25,46 @@ class TaskGroupDataManager{
     
     
     func fetchImagesWithTaskGroup() async throws -> [UIImage]{
-        return try await withThrowingTaskGroup(of: UIImage.self) { group in
+        
+        let urlStrings = [
+            "https://picsum.photos/200",
+            "https://picsum.photos/200",
+            "https://picsum.photos/200",
+            "https://picsum.photos/200",
+            "https://picsum.photos/200"
+        ]
+        
+        
+        return try await withThrowingTaskGroup(of: UIImage?.self) { group in
+            
             var images : [UIImage] = []
+            images.reserveCapacity(urlStrings.count) // length of array
             
-            group.addTask {
-                try await self.fetchImage(urlString: "https://picsum.photos/200")
-            }
-            group.addTask {
-                try await self.fetchImage(urlString: "https://picsum.photos/200")
-            }
-            group.addTask {
-                try await self.fetchImage(urlString: "https://picsum.photos/200")
-            }
-            group.addTask {
-                try await self.fetchImage(urlString: "https://picsum.photos/200")
+            
+            for urlString in urlStrings{
+                group.addTask {
+                    try? await self.fetchImage(urlString: urlString)
+                }
             }
             
+//            group.addTask {
+//                try await self.fetchImage(urlString: "https://picsum.photos/200")
+//            }
+//            group.addTask {
+//                try await self.fetchImage(urlString: "https://picsum.photos/200")
+//            }
+//            group.addTask {
+//                try await self.fetchImage(urlString: "https://picsum.photos/200")
+//            }
+//            group.addTask {
+//                try await self.fetchImage(urlString: "https://picsum.photos/200")
+//            }
+//            
             
             for try await image in group{
-                images.append(image)
+                if let image = image{
+                    images.append(image)
+                }
             }
             
             
