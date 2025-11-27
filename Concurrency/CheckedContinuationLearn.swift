@@ -34,6 +34,22 @@ class CheckedContinuationNetworkManager{
             .resume()
         }
     }
+    
+    
+    func getHeartImageFromDataBase(completionHandler: @escaping(_ image: UIImage) -> ()){
+        DispatchQueue.main.asyncAfter(deadline: .now()+5){
+            completionHandler(UIImage(systemName: "heart.fill")!)
+        }
+    }
+    
+    
+    func getHeartImageFromDataBase2() async throws -> UIImage{
+        return await withCheckedContinuation { continuation in
+            getHeartImageFromDataBase { image in
+                continuation.resume(returning: image)
+            }
+        }
+    }
 }
 
 
@@ -57,7 +73,19 @@ class CheckedContinuationNetworkManager{
         }
     }
     
-    
+    func getHeartImage() async {
+//        manager.getHeartImageFromDataBase {[weak self] image in
+//            self?.imaage = image
+//        }
+        
+        do {
+            self.imaage = try await manager.getHeartImageFromDataBase2()
+        } catch {
+            print(error)
+        }
+
+        
+    }
 }
 
 
@@ -77,7 +105,8 @@ struct CheckedContinuationLearn: View {
             }
         }
         .task {
-            await vm.getImage()
+//            await vm.getImage()
+            await vm.getHeartImage()
         }
     }
 }
