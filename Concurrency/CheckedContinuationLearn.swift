@@ -18,6 +18,22 @@ class CheckedContinuationNetworkManager{
             throw error
         }
     }
+    
+    
+    func getData2(url: URL) async throws -> Data{
+        return try await withCheckedThrowingContinuation { continuation in
+            URLSession.shared.dataTask(with: url) { data, response, error in
+                if let data = data{
+                    continuation.resume(returning: data) //must resume only once
+                }else if let error =  error{
+                    continuation.resume(throwing: error)
+                }else{
+                    continuation.resume(throwing: URLError(.badURL))
+                }
+            }
+            .resume()
+        }
+    }
 }
 
 
@@ -30,7 +46,7 @@ class CheckedContinuationNetworkManager{
         guard let url = URL(string: "https://picsum.photos/200") else {return}
         
         do {
-            let data = try await manager.getData(url: url)
+            let data = try await manager.getData2(url: url)
             if let image = UIImage(data: data){
                 await MainActor.run {
                     self.imaage = image
@@ -40,6 +56,8 @@ class CheckedContinuationNetworkManager{
             print(error)
         }
     }
+    
+    
 }
 
 
