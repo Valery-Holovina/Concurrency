@@ -39,9 +39,9 @@ class MyClass{
 extension StructClassActorLearn{
     private func runTest(){
         print("test started")
-        structTest1()
-        divide()
-        classTest1()
+//        structTest1()
+//        divide()
+//        classTest1()
         
         
         /**
@@ -62,6 +62,9 @@ extension StructClassActorLearn{
          ObjA:  Second title
          objB:  Second title
          */
+        
+        //--------------------------------------------
+        structTest2()
     }
     
     private func structTest1(){
@@ -101,5 +104,57 @@ extension StructClassActorLearn{
         print("objB: ", objB.title)
         
         
+    }
+}
+
+
+
+
+//Immutable struct (everything is going to be (let) inside, do not change)
+struct CustomStruct{
+    let title: String
+    
+    
+    func updateTitle(newTitle: String)-> CustomStruct{
+        CustomStruct(title: newTitle)
+    }
+}
+
+struct MutatingStruct{
+    private(set) var title: String // we wnat to set it privatly but get it outside
+    
+    init(title: String) {
+        self.title = title
+    }
+    
+    mutating func updateTitle(newTitle: String){
+        title = newTitle
+    }
+}
+
+extension StructClassActorLearn{
+    private func structTest2(){
+        print("struct test2")
+        
+        var struct1 = MyStruct(title: "title1")
+        print("Struct1: ", struct1.title)
+        
+        struct1.title = "title2"
+        print("Struct1: ", struct1.title)
+        
+        var struct2 = CustomStruct(title: "Title1")
+        print("Struct2: ", struct2.title)
+        struct2 = CustomStruct(title: "Title2")
+        print("Struct2: ", struct2.title)
+        
+        var struct3 = CustomStruct(title: "Title1")
+        print("Struct3: ", struct3.title)
+        struct3 = struct3.updateTitle(newTitle: "Title2")
+        print("Struct3: ", struct3.title)
+        
+        var struct4 = MutatingStruct(title: "Title1")
+        print("Struct4: ", struct4.title)
+        struct4.updateTitle(newTitle: "Title2")
+        print("Struct4: ", struct4.title)
     }
 }
