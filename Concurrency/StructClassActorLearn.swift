@@ -5,6 +5,16 @@
 //  Created by Valery on 01.12.2025.
 //
 
+
+
+
+
+
+//ARC (Automatic Reference Counting) - for objects in the Heap. To track and manage memory usage, automatically frees up the memory when thos instances are no longer needed
+// (Value types are not affected by ARC)
+// Every isnatance of a slass has property called Reference Count (if count greater than 0 is kept in memory, otherwise will be removed from memory)
+
+
 import SwiftUI
 
 struct StructClassActorLearn: View {
@@ -32,6 +42,11 @@ class MyClass{
     
     init(title: String) {
         self.title = title
+    }
+    
+    
+    func updateTitle(newTitle: String){
+        title = newTitle
     }
 }
 
@@ -65,6 +80,8 @@ extension StructClassActorLearn{
         
         //--------------------------------------------
         structTest2()
+        divide()
+        classTest2()
     }
     
     private func structTest1(){
@@ -156,5 +173,27 @@ extension StructClassActorLearn{
         print("Struct4: ", struct4.title)
         struct4.updateTitle(newTitle: "Title2")
         print("Struct4: ", struct4.title)
+    }
+}
+
+
+
+
+
+extension StructClassActorLearn{
+    private func classTest2(){
+        print("class test2")
+        
+        let class1 = MyClass(title: "tittle1")
+        print("Class1:", class1.title)
+        
+        class1.title = "Title2"
+        print("Class1:", class1.title)
+        
+        let class2 = MyClass(title: "tittle1")
+        print("Class2:", class2.title)
+        
+        class2.updateTitle(newTitle: "Title2")
+        print("Class2:", class2.title)
     }
 }
