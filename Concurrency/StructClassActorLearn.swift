@@ -15,6 +15,65 @@
 // Every isnatance of a slass has property called Reference Count (if count greater than 0 is kept in memory, otherwise will be removed from memory)
 
 
+
+
+/*
+ VALUE TYPES:
+ - Struct, Enum, Int, etc.
+ - Stored in the Stack
+ - Faster
+ - Thread safe
+ - When you assign or pass value type a new copy of data is created
+ 
+ REFERENCE TYPES:
+ - Class, Actor, Function
+ - Heap
+ - Slower, but synchronized
+ - Not Thread safe (by default)
+ - Passing reference (pointer)
+ 
+- - - - - - - - - - - - - - - - - - - -  -
+ 
+ STACK:
+ - Stored Value types
+ - Fast access
+ - Each thread has it's own Stack
+ 
+ 
+ HEAP:
+ - Stors Reference types
+ - Shared across threads
+ 
+ - - - - - - - - - - - - - - - - - - - -  -
+ 
+ STRUCT:
+ - Based on VALUES
+ - Can be mutated
+ - Stored in Stack
+ 
+ CLASS:
+ - Based on REFERENCES (INSTANCES)
+ - Stored in the Heap
+ - Inherit from other classes
+ 
+ ACTOR:
+ - Same as Class, but thread safe
+ 
+ - - - - - - - - - - - - - - - - - - - -  -
+ 
+ Structs: Data Models, Views
+ Classes: View Models
+ Actors: Data Manager, Shared 'Manager' and 'Data Store'
+ 
+ 
+ 
+ */
+
+
+
+
+
+
 import SwiftUI
 
 struct StructClassActorLearn: View {
@@ -51,12 +110,28 @@ class MyClass{
 }
 
 
+actor MyActor{
+    var title: String
+    
+    init(title: String) {
+        self.title = title
+    }
+    
+    
+    func updateTitle(newTitle: String){
+        title = newTitle
+    }
+}
+
+
 extension StructClassActorLearn{
     private func runTest(){
         print("test started")
-//        structTest1()
-//        divide()
-//        classTest1()
+        structTest1()
+        divide()
+        classTest1()
+        divide()
+        actorTest1()
         
         
         /**
@@ -79,9 +154,9 @@ extension StructClassActorLearn{
          */
         
         //--------------------------------------------
-        structTest2()
-        divide()
-        classTest2()
+//        structTest2()
+//        divide()
+//        classTest2()
     }
     
     private func structTest1(){
@@ -119,6 +194,28 @@ extension StructClassActorLearn{
         print("objB title changed ")
         print("ObjA: ", objA.title)
         print("objB: ", objB.title)
+        
+        
+    }
+    
+    private func actorTest1(){
+        // Actors - thread safe but you need to be in async environment
+        Task{
+            print("actorTest1")
+            let objA = MyActor(title: "Starting title")
+            await print("ObjA: ", objA.title)
+            
+            // we go inside existing obj and change data inside it
+            //pointing to the same obj in memory
+            print("Pass the REFERENCE of objA to objB")
+            let objB = objA
+            await print("objB: ", objB.title)
+            
+           await  objB.updateTitle(newTitle: "Second title")
+            print("objB title changed ")
+            await print("ObjA: ", objA.title)
+            await print("objB: ", objB.title)
+        }
         
         
     }
