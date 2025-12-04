@@ -31,9 +31,33 @@ class MyDataManager{
     }
 }
 
+
+actor MyActorDataManager{
+    
+    static let instance = MyActorDataManager()
+    private init(){}
+    
+    var data: [String] = []
+    
+    nonisolated let randomText: String = "kskksk"
+    
+    
+    func getRandomData() -> String?{
+            self.data.append(UUID().uuidString)
+            print(Thread.current)
+            return self.data.randomElement()
+       
+    }
+    
+    //When we do not want to await
+    nonisolated func getSavedData() -> String{
+        return "New Data"
+    }
+}
+
 struct HomeView: View {
     
-    let manager = MyDataManager.instance
+    let manager = MyActorDataManager.instance
     @State private var text: String = ""
     let timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
     
@@ -43,18 +67,37 @@ struct HomeView: View {
             Text(text)
                 .font(.headline)
         }
+        .onAppear{
+            
+            //nonisolated
+            let newString =  manager.getSavedData()
+            let text = manager.randomText
+//            Task{
+////                await manager.data
+//
+//            }
+        }
         .onReceive(timer) { _ in
-            DispatchQueue.global(qos: .background).async{
-                
-                manager.getRandomData { title in
-                    if let data = title{
-                        DispatchQueue.main.async {
-                            self.text = data
-                        }
-                       
+//            DispatchQueue.global(qos: .background).async{
+//                
+//                manager.getRandomData { title in
+//                    if let data = title{
+//                        DispatchQueue.main.async {
+//                            self.text = data
+//                        }
+//                       
+//                    }
+//                }
+//             
+//            }
+            
+            
+            Task{
+                if let data = await manager.getRandomData(){
+                    await MainActor.run {
+                        self.text = data
                     }
                 }
-             
             }
           
         }
@@ -64,7 +107,7 @@ struct HomeView: View {
 
 struct BrowseView: View {
     
-    let manager = MyDataManager.instance
+    let manager = MyActorDataManager.instance
     @State private var text: String = ""
     let timer = Timer.publish(every: 0.01, on: .main, in: .common).autoconnect()
     
@@ -75,13 +118,21 @@ struct BrowseView: View {
                 .font(.headline)
         }
         .onReceive(timer) { _ in
-            DispatchQueue.global(qos: .default).async{
-                manager.getRandomData { title in
-                    if let data = title{
-                        DispatchQueue.main.async {
-                            self.text = data
-                        }
-                       
+//            DispatchQueue.global(qos: .default).async{
+//                manager.getRandomData { title in
+//                    if let data = title{
+//                        DispatchQueue.main.async {
+//                            self.text = data
+//                        }
+//                       
+//                    }
+//                }
+//            }
+            
+            Task{
+                if let data = await manager.getRandomData(){
+                    await MainActor.run {
+                        self.text = data
                     }
                 }
             }
