@@ -42,10 +42,27 @@ final class SearchableViewModel: ObservableObject{
     @Published private(set) var allRestaurants: [Restaurant] = []
     @Published private(set) var filteredRestaurants: [Restaurant] = []
     @Published var searchText: String = ""
+    @Published var searchScope: SearchScopeOption = .all
+    @Published private(set) var allSearchScopes: [SearchScopeOption] = []
     
     private var cancellables = Set<AnyCancellable>()
     var isSearching: Bool {
         !searchText.isEmpty
+    }
+    
+    enum SearchScopeOption: Hashable{
+        case all
+        case cusine(option: CuisineOption)
+        
+        
+        var title:String{
+            switch self {
+            case .all:
+                return "All"
+            case .cusine(option: let option):
+                return option.rawValue.capitalized
+            }
+        }
     }
     
     let manager = RestaurantManager()
@@ -58,21 +75,36 @@ final class SearchableViewModel: ObservableObject{
     
     private func addSubscribers(){
         $searchText
+            .combineLatest($searchScope)
             .debounce(for: 0.3, scheduler: DispatchQueue.main)
-            .sink { [weak self] searchText in
-                self?.filterRestaurants(searchText: searchText)
+            .sink { [weak self] searchText, searchScope in
+                self?.filterRestaurants(searchText: searchText, searchScope: searchScope)
             }
             .store(in: &cancellables)
     }
     
-    private func filterRestaurants(searchText: String){
+    private func filterRestaurants(searchText: String, searchScope: SearchScopeOption){
         guard !searchText.isEmpty else{
             filteredRestaurants = []
+            self.searchScope = .all
             
             return
         }
+        
+        //Filter on search scope
+        var restaurantsInScope = allRestaurants
+        switch searchScope {
+        case .all:
+            break
+        case .cusine(option: let option):
+            restaurantsInScope = allRestaurants.filter({restaurant in
+                return restaurant.cuisine == option
+            })
+        }
+        
+        //Filter on searchText
         let search = searchText.lowercased()
-        filteredRestaurants = allRestaurants.filter({ restaurant in
+        filteredRestaurants = restaurantsInScope.filter({ restaurant in
             let titleContainsSearch = restaurant.title.lowercased().contains(search)
             let cuisineContainsSearch = restaurant.cuisine.rawValue.lowercased().contains(search)
             return titleContainsSearch || cuisineContainsSearch
@@ -82,6 +114,11 @@ final class SearchableViewModel: ObservableObject{
     func loadRestaurants() async{
         do {
             allRestaurants = try await manager.getAllRestaurants()
+            
+            let allCusines = Set(allRestaurants.map{$0.cuisine})
+            allSearchScopes = [.all] + allCusines.map({option in
+                SearchScopeOption.cusine(option: option)
+            })
         } catch  {
             print(error)
         }
@@ -107,6 +144,12 @@ struct SearchableLearn: View {
 //                SearchChildView()
             }
             .searchable(text: $vm.searchText, placement: .automatic, prompt: Text("Search restaurants"))
+            .searchScopes($vm.searchScope, scopes: {
+                ForEach(vm.allSearchScopes, id: \.self) { scope in
+                    Text(scope.title)
+                        .tag(scope)
+                }
+            })
             
             .navigationTitle("Restaurants")
             .task {
