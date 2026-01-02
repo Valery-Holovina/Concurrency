@@ -103,6 +103,8 @@ struct SearchableLearn: View {
                     }
                 }
                 .padding()
+//                Text("ViewModel is searching: \(vm.isSearching.description)")
+//                SearchChildView()
             }
             .searchable(text: $vm.searchText, placement: .automatic, prompt: Text("Search restaurants"))
             
@@ -123,6 +125,14 @@ struct SearchableLearn: View {
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.black.opacity(0.05))
+    }
+}
+
+struct SearchChildView: View{
+    @Environment(\.isSearching) private var isSearching
+    
+    var body: some View{
+        Text("Child View is searching: \(isSearching.description)")
     }
 }
 
