@@ -50,6 +50,10 @@ final class SearchableViewModel: ObservableObject{
         !searchText.isEmpty
     }
     
+    var showSearchSuggestions: Bool{
+        searchText.count < 3
+    }
+    
     enum SearchScopeOption: Hashable{
         case all
         case cusine(option: CuisineOption)
@@ -125,6 +129,35 @@ final class SearchableViewModel: ObservableObject{
     }
     
     
+    func getSearchSuggestions() -> [String]{
+        
+        guard showSearchSuggestions else{
+            return []
+        }
+        var suggestions: [String] = []
+        
+        let search = searchText.lowercased()
+        if search.contains("pa"){
+            suggestions.append("Pasta")
+        }
+        if search.contains("su"){
+            suggestions.append("Sushi")
+        }
+        if search.contains("bu"){
+            suggestions.append("Burger")
+        }
+        suggestions.append("Market")
+        suggestions.append("Grocery")
+        
+        suggestions.append(CuisineOption.italian.rawValue.capitalized)
+        suggestions.append(CuisineOption.american.rawValue.capitalized)
+        suggestions.append(CuisineOption.japanese.rawValue.capitalized)
+        
+        return suggestions
+
+    }
+    
+    
 }
 
 struct SearchableLearn: View {
@@ -150,6 +183,12 @@ struct SearchableLearn: View {
                         .tag(scope)
                 }
             })
+            .searchSuggestions({
+                ForEach(vm.getSearchSuggestions(),id: \.self) { suggestion in
+                    Text(suggestion)
+                        .searchCompletion(suggestion)
+                    
+                }            })
             
             .navigationTitle("Restaurants")
             .task {
