@@ -51,7 +51,7 @@ final class SearchableViewModel: ObservableObject{
     }
     
     var showSearchSuggestions: Bool{
-        searchText.count < 3
+        searchText.count < 5
     }
     
     enum SearchScopeOption: Hashable{
@@ -157,6 +157,23 @@ final class SearchableViewModel: ObservableObject{
 
     }
     
+    func getRestaurantSuggestions() -> [Restaurant]{
+        guard showSearchSuggestions else{
+            return []
+        }
+        var suggestions: [Restaurant] = []
+        
+        let search = searchText.lowercased()
+        if search.contains("ita"){
+            suggestions.append(contentsOf: allRestaurants.filter({$0.cuisine == .italian}))
+        }
+        if search.contains("jap"){
+            suggestions.append( contentsOf: allRestaurants.filter({$0.cuisine == .japanese}))
+        }
+    
+        
+        return suggestions
+    }
     
 }
 
@@ -169,7 +186,10 @@ struct SearchableLearn: View {
             ScrollView{
                 VStack(spacing: 20) {
                     ForEach(vm.isSearching ? vm.filteredRestaurants: vm.allRestaurants) { restaurant in
-                        restaurantRow(restaurant: restaurant)
+                        
+                        NavigationLink(value: restaurant) {
+                            restaurantRow(restaurant: restaurant)
+                        }
                     }
                 }
                 .padding()
@@ -188,11 +208,23 @@ struct SearchableLearn: View {
                     Text(suggestion)
                         .searchCompletion(suggestion)
                     
-                }            })
+                }
+                
+                ForEach(vm.getRestaurantSuggestions(),id: \.self) { suggestion in
+                    NavigationLink(value: suggestion) {
+                        Text(suggestion.title)
+                    }
+                        
+                    
+                }
+            })
             
             .navigationTitle("Restaurants")
             .task {
                 await vm.loadRestaurants()
+            }
+            .navigationDestination(for: Restaurant.self) { restaurant in
+                Text(restaurant.title.uppercased())
             }
         }
     }
